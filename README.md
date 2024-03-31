@@ -70,3 +70,72 @@ This repository contains a Terraform module for provisioning an Amazon Elastic K
 | eks_cluster_sg_id           | Security Group ID                             |
 | eks_iam_role_arn           | EKS IAM Role                                  |
 
+## Tests
+
+### Jenkins Setup for EBS Controller Tests
+
+#### Preparation
+1. Create a namespace for Jenkins:
+    ```bash
+    kubectl create ns jenkins
+    ```
+
+2. Apply service account configuration:
+    ```bash
+    kubectl apply -f jenkins-sa.yaml
+    ```
+
+3. Apply cluster role:
+    ```bash
+    kubectl apply -f jenkins-cluster-role.yaml
+    ```
+
+4. Apply cluster role binding:
+    ```bash
+    kubectl apply -f jenkins-cluster-role-binding.yaml
+    ```
+
+#### Jenkins Release
+1. Add Jenkins Helm repository:
+    ```bash
+    helm repo add jenkinsci https://charts.jenkins.io
+    helm repo update
+    ```
+
+2. Install Jenkins:
+    ```bash
+    helm install jenkins -n jenkins -f jenkins-chart-values.yaml jenkinsci/jenkins
+    ```
+
+#### Validation
+1. Verify that the jenkins-pvc is automatically bound to PV via the EBS Controller.
+2. Connect to Jenkins using port forwarding:
+    ```bash
+    kubectl port-forward svc/jenkins -n jenkins 8080:8080
+    ```
+
+3. Access Jenkins on your browser at `http://localhost:8080`.
+
+### Karpenter Testing
+
+#### Preparation
+1. Navigate to the test-karpenter directory:
+    ```bash
+    cd tests/test-karpenter
+    ```
+
+2. Apply the inflate.yaml manifest:
+    ```bash
+    kubectl apply -f inflate.yaml
+    ```
+
+#### Test Scenarios
+1. Scale up the deployment `inflate` to 20 replicas:
+    ```bash
+    kubectl scale deployment inflate --replicas 20
+    ```
+
+2. Scale down the deployment `inflate` to 0 replicas:
+    ```bash
+    kubectl scale deployment inflate --replicas 0
+    ```
