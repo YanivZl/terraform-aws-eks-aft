@@ -82,7 +82,7 @@ This repository contains a Terraform module for provisioning an Amazon Elastic K
 
 2. Apply service account configuration:
     ```bash
-    kubectl apply -f jenkins-sa.yaml
+    kubectl apply -f jenkins-sa.yaml -n jenkins
     ```
 
 3. Apply cluster role:
