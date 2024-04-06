@@ -262,6 +262,7 @@ controller:
     - aws-credentials:218.v1b_e9466ec5da_
     - multibranch-scan-webhook-trigger:1.0.11
     - sonar:2.17.2
+    - aws-secrets-manager-credentials-provider:1.214.va_0a_d8268d068
 
   # Set to false to download the minimum required version of all dependencies.
   installLatestPlugins: true
