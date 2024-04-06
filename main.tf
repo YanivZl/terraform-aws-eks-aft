@@ -252,6 +252,8 @@ resource "aws_iam_policy" "jenkins_secrets_policy" {
 
 module "irsa_jenkins_ssm" {
   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  role_name = "jenkins-ssm"
+  
   role_policy_arns = {
     policy = aws_iam_policy.jenkins_secrets_policy.arn
   }
