@@ -221,3 +221,44 @@ resource "kubectl_manifest" "karpenter_node_template" {
         karpenter.sh/discovery: ${module.eks.cluster_name}
   YAML
 }
+
+
+################################################################################
+# jenkins
+################################################################################
+
+resource "aws_iam_policy" "jenkins_secrets_policy" {
+  name        = "JenkinsSecretsPolicy"
+  description = "Policy for allowing Jenkins to access AWS Secrets Manager"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowJenkinsToGetSecretValues"
+        Effect = "Allow"
+        Action = "secretsmanager:GetSecretValue"
+        Resource = "*"
+      },
+      {
+        Sid    = "AllowJenkinsToListSecrets"
+        Effect = "Allow"
+        Action = "secretsmanager:ListSecrets"
+        Resource = "*"
+      },
+    ]
+  })
+}
+
+module "irsa_jenkins_ssm" {
+  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  role_policy_arns = {
+    policy = aws_iam_policy.jenkins_secrets_policy.arn
+  }
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["jenkins:jenkins"]
+    }
+  }
+}
