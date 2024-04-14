@@ -44,7 +44,7 @@ module "vpc" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "19.20.0"
+  version = "~> 20.0"
 
   cluster_name                   = var.cluster_name
   cluster_version                = var.cluster_version
@@ -68,6 +68,27 @@ module "eks" {
       iam_role_additional_policies = {
         AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
       }
+    }
+  }
+
+  #  EKS K8s API cluster needs to be able to talk with the EKS worker nodes with port 15017/TCP and 15012/TCP which is used by Istio
+  #  Istio in order to create sidecar needs to be able to communicate with webhook and for that network passage to EKS is needed.
+  node_security_group_additional_rules = {
+    ingress_15017 = {
+      description                   = "Cluster API - Istio Webhook namespace.sidecar-injector.istio.io"
+      protocol                      = "TCP"
+      from_port                     = 15017
+      to_port                       = 15017
+      type                          = "ingress"
+      source_cluster_security_group = true
+    }
+    ingress_15012 = {
+      description                   = "Cluster API to nodes ports/protocols"
+      protocol                      = "TCP"
+      from_port                     = 15012
+      to_port                       = 15012
+      type                          = "ingress"
+      source_cluster_security_group = true
     }
   }
 
